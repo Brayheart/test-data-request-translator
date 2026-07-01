@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { datasetToCsv, generateStarterDataset } from "./generate";
+import { datasetCoverage, datasetToCsv, generateStarterDataset } from "./generate";
 import type { ExtractedRequest } from "./types";
 
 const asOf = new Date("2026-06-30T00:00:00Z");
@@ -173,6 +173,30 @@ describe("generateStarterDataset", () => {
     );
     const fee = dataset.transactions.find((txn) => txn.scenario === "overdraft" && txn.rail === "fee");
     expect(fee && purchase && fee.date >= purchase.date).toBe(true);
+  });
+
+  it("confirms coverage of the requested products, rails, and scenarios", () => {
+    const dataset = generateStarterDataset(baseRequest, { asOf });
+    const coverage = datasetCoverage(baseRequest, dataset);
+
+    expect(coverage.products.map((item) => item.value)).toEqual(["checking", "savings"]);
+    expect(coverage.products.every((item) => item.covered)).toBe(true);
+    expect(coverage.scenarios.find((item) => item.value === "closed_account")?.covered).toBe(true);
+    expect(coverage.scenarios.find((item) => item.value === "overdraft")?.covered).toBe(true);
+  });
+
+  it("marks a requested rail as not covered when product rules prevent that row", () => {
+    const savingsDebitRequest: ExtractedRequest = {
+      ...baseRequest,
+      products: ["savings"],
+      transaction_rails: ["debit_card"],
+      edge_cases: []
+    };
+    const dataset = generateStarterDataset(savingsDebitRequest, { asOf });
+    const coverage = datasetCoverage(savingsDebitRequest, dataset);
+    const debitCard = coverage.rails.find((item) => item.value === "debit_card");
+    expect(debitCard).toBeDefined();
+    expect(debitCard?.covered).toBe(false);
   });
 
   it("exports a CSV with a header and one row per transaction", () => {

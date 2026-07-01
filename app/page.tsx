@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { buildJsonExport, buildMarkdownExport } from "@/lib/export";
-import { datasetToCsv, datasetToJson, generateStarterDataset } from "@/lib/generate";
+import { datasetCoverage, datasetToCsv, datasetToJson, generateStarterDataset } from "@/lib/generate";
 import type { StarterDataset } from "@/lib/generate";
 import { validateRequest } from "@/lib/rules";
 import type {
@@ -168,6 +168,7 @@ export default function Home() {
 
   const flags = useMemo(() => (request ? validateRequest(request) : []), [request]);
   const openItems = request ? openItemsForPreview(request, flags) : [];
+  const coverage = request && dataset ? datasetCoverage(request, dataset) : null;
 
   useEffect(() => {
     if (!loading) return;
@@ -710,6 +711,44 @@ export default function Home() {
               </div>
             ) : null}
           </div>
+
+          {dataset && coverage ? (
+            <div className="coverageCheck">
+              <h3 className="blockHeading">Coverage check</h3>
+              <p className="muted previewNote">
+                Confirms the starter data includes each product, transaction type, and scenario you asked for.
+              </p>
+              <div className="coverageGroups">
+                {[
+                  { title: "Products", items: coverage.products, labels: productLabelByValue },
+                  { title: "Transaction types", items: coverage.rails, labels: railLabelByValue },
+                  { title: "Exception scenarios", items: coverage.scenarios, labels: edgeLabelByValue }
+                ]
+                  .filter((group) => group.items.length > 0)
+                  .map((group) => (
+                    <div className="coverageGroup" key={group.title}>
+                      <h4>{group.title}</h4>
+                      <div className="coveragePills">
+                        {group.items.map((item) => (
+                          <span
+                            className={`coveragePill ${item.covered ? "covered" : "missing"}`}
+                            key={item.value}
+                            title={
+                              item.covered
+                                ? "Included in the starter data"
+                                : "Not included in this small sample"
+                            }
+                          >
+                            <span className="coverageMark">{item.covered ? "✓" : "—"}</span>
+                            {group.labels[item.value] ?? item.value}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          ) : null}
 
           {dataset ? (
             <>

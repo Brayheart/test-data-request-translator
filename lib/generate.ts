@@ -473,3 +473,30 @@ export function datasetToCsv(dataset: StarterDataset): string {
 export function datasetToJson(dataset: StarterDataset): string {
   return JSON.stringify(dataset, null, 2);
 }
+
+export type CoverageItem = { value: string; covered: boolean };
+
+export type DatasetCoverage = {
+  products: CoverageItem[];
+  rails: CoverageItem[];
+  scenarios: CoverageItem[];
+};
+
+/**
+ * Read-only confirmation that the generated dataset actually covers what the
+ * request asked for. Pure over the dataset — it changes nothing, it just checks
+ * each requested product / transaction type / exception scenario against the
+ * rows that were produced.
+ */
+export function datasetCoverage(request: ExtractedRequest, dataset: StarterDataset): DatasetCoverage {
+  const productSet = new Set<string>(dataset.accounts.map((account) => account.product));
+  const railSet = new Set<string>(dataset.transactions.map((txn) => txn.rail));
+  const scenarioSet = new Set<string>(dataset.transactions.map((txn) => txn.scenario));
+  const dedupe = (values: string[]) => Array.from(new Set(values.filter((value) => value !== "unknown")));
+
+  return {
+    products: dedupe(request.products).map((value) => ({ value, covered: productSet.has(value) })),
+    rails: dedupe(request.transaction_rails).map((value) => ({ value, covered: railSet.has(value) })),
+    scenarios: dedupe(request.edge_cases).map((value) => ({ value, covered: scenarioSet.has(value) }))
+  };
+}
