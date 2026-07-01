@@ -1,6 +1,6 @@
 # Test Data Request Translator
 
-Single-page prototype for an Applied AI Analyst take-home.
+A small guided prototype for an Applied AI Analyst take-home.
 
 The app turns messy consultant notes into a starter test dataset plus a structured request, in a short guided flow:
 
@@ -8,7 +8,8 @@ The app turns messy consultant notes into a starter test dataset plus a structur
 2. Deterministic rules flag completeness gaps.
 3. The consultant reviews, corrects, and fills in what they know.
 4. A deterministic generator produces a small starter dataset (accounts + transactions) the consultant can test with immediately — no engineering ticket, no waiting.
-5. Both the dataset (CSV) and the request (Markdown, plus JSON for downstream tools) are downloadable.
+5. A coverage check confirms the dataset actually includes each requested product, transaction type, and exception scenario.
+6. Both the dataset (CSV) and the request (Markdown, plus JSON for downstream tools) are downloadable.
 
 ## What this builds
 
