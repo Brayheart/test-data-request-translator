@@ -179,6 +179,10 @@ export default function Home() {
     return () => clearInterval(id);
   }, [loading]);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [step]);
+
   async function runExtraction() {
     setLoading(true);
     setError("");
